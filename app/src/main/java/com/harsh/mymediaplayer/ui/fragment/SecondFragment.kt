@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.harsh.mymediaplayer.databinding.FragmentSecondBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SecondFragment: Fragment() {
 
     private lateinit var binding: FragmentSecondBinding

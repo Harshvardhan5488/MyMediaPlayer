@@ -13,13 +13,13 @@
         android:layout_height="wrap_content"
         android:elevation="8dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/play_pause_btn"
-        app:layout_constraintEnd_toEndOf="@+id/play_pause_btn"
-        app:layout_constraintStart_toStartOf="@+id/play_pause_btn"
-        app:layout_constraintTop_toTopOf="@+id/play_pause_btn" />
+        app:layout_constraintBottom_toBottomOf="@+id/play_pause_iv"
+        app:layout_constraintEnd_toEndOf="@+id/play_pause_iv"
+        app:layout_constraintStart_toStartOf="@+id/play_pause_iv"
+        app:layout_constraintTop_toTopOf="@+id/play_pause_iv" />
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/play_pause_btn"
+        android:id="@+id/play_pause_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
@@ -33,10 +33,10 @@
         android:id="@+id/seek_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@id/play_pause_btn"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause_iv"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/play_pause_btn"
-        app:layout_constraintTop_toTopOf="@id/play_pause_btn" />
+        app:layout_constraintStart_toEndOf="@id/play_pause_iv"
+        app:layout_constraintTop_toTopOf="@id/play_pause_iv" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
