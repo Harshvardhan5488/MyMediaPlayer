@@ -91,11 +91,7 @@ class AudioPlaybackController @Inject constructor(
     }
 
     override fun stopAudio() {
-        browser?.let { browser ->
-            if (browser.isPlaying) {
-                browser.stop()
-            }
-        }
+        browser?.stop()
     }
 
     override fun isPlaying() = browser?.isPlaying ?: false

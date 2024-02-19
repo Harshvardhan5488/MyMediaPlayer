@@ -9,7 +9,7 @@
         android:id="@+id/homeFragment"
         android:name="com.harsh.mymediaplayer.ui.fragment.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_firstFragment"
             app:destination="@id/firstFragment" />
@@ -18,7 +18,7 @@
         android:id="@+id/firstFragment"
         android:name="com.harsh.mymediaplayer.ui.fragment.FirstFragment"
         android:label="fragment_first"
-        tools:layout="@layout/fragment_first" >
+        tools:layout="@layout/fragment_first">
         <action
             android:id="@+id/action_firstFragment_to_secondFragment"
             app:destination="@id/secondFragment" />
@@ -27,5 +27,14 @@
         android:id="@+id/secondFragment"
         android:name="com.harsh.mymediaplayer.ui.fragment.SecondFragment"
         android:label="fragment_second"
-        tools:layout="@layout/fragment_second" />
+        tools:layout="@layout/fragment_second">
+        <action
+            android:id="@+id/action_secondFragment_to_fullScreenImageFragment"
+            app:destination="@id/fullScreenImageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/fullScreenImageFragment"
+        android:name="com.harsh.mymediaplayer.ui.fragment.FullScreenImageFragment"
+        android:label="fragment_full_screen_image"
+        tools:layout="@layout/fragment_full_screen_image" />
 </navigation>

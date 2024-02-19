@@ -47,4 +47,9 @@ class MainActivityViewModel @Inject constructor(
     init {
         audioPlaybackController.initializePlayer()
     }
+
+    override fun onCleared() {
+        audioPlaybackController.releasePlayer()
+        super.onCleared()
+    }
 }
