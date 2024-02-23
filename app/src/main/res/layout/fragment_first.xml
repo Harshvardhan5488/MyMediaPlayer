@@ -45,4 +45,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/play_pause_iv" />
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/image_iv"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/next_fragment_bt" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

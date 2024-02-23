@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.harsh.mymediaplayer.R
 import com.harsh.mymediaplayer.databinding.FragmentFirstBinding
@@ -63,7 +65,11 @@ class FirstFragment: Fragment() {
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentFirstBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.startButton.setOnClickListener {
             mainActivityViewModel.playCentralAudio(LINK)
         }
@@ -89,7 +95,13 @@ class FirstFragment: Fragment() {
             }
         }
 
-        return binding.root
+        val fileUri = Uri.parse("com.android.providers.media.photopicker/media/1000038350")
+        Glide.with(binding.imageIv.context).asBitmap()
+            .load(fileUri)
+            .placeholder(R.drawable.ic_photo_24)
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .dontAnimate()
+            .into(binding.imageIv)
     }
 
     private fun showStoragePermissionRationale() {
@@ -142,10 +154,12 @@ class FirstFragment: Fragment() {
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA,
-                //Manifest.permission.RECORD_AUDIO
+                // Manifest.permission.RECORD_AUDIO
             ).apply {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    add(Manifest.permission.READ_MEDIA_IMAGES)
                 }
             }.toTypedArray()
 

@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.harsh.mymediaplayer.R
 import com.harsh.mymediaplayer.databinding.FragmentFullScreenImageBinding
 
 class FullScreenImageFragment: Fragment() {
@@ -24,7 +26,7 @@ class FullScreenImageFragment: Fragment() {
             binding.fullscreenIv.setImageURI(Uri.parse(imageUri))
         }
         binding.sendBt.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack(R.id.firstFragment, false)
         }
         return binding.root
     }

@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,8 +27,6 @@ import com.harsh.mymediaplayer.databinding.FragmentSecondBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class SecondFragment: Fragment() {
@@ -36,7 +35,11 @@ class SecondFragment: Fragment() {
 
     private var imageCapture: ImageCapture? = null
 
-    private lateinit var cameraExecutor: ExecutorService
+    /*
+    private val cameraExecutor: ExecutorService by lazy {
+        Executors.newSingleThreadExecutor()
+    }
+    */
     private var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -57,6 +60,12 @@ class SecondFragment: Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentSecondBinding.inflate(inflater, container, false)
         startCamera()
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.openGalleryBt.setOnClickListener { openPicker() }
         binding.clickBt.setOnClickListener { takePhoto() }
         binding.flipBt.setOnClickListener {
@@ -67,10 +76,6 @@ class SecondFragment: Fragment() {
             }
             startCamera()
         }
-
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
-        return binding.root
     }
 
     private fun startCamera() {
@@ -89,7 +94,8 @@ class SecondFragment: Fragment() {
 
             imageCapture = ImageCapture.Builder()
                 .setFlashMode(FLASH_MODE_AUTO)
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetResolution(Size(binding.surfaceView.measuredWidth, binding.surfaceView.measuredHeight))
                 .build()
 
             try {
@@ -103,6 +109,11 @@ class SecondFragment: Fragment() {
 
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
+                Toast.makeText(requireContext(), "Failed to open", Toast.LENGTH_SHORT).show()
+                /*
+                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                startCamera()
+                */
             }
 
         }, ContextCompat.getMainExecutor(requireContext()))
