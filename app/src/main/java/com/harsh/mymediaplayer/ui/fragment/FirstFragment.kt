@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -25,12 +26,16 @@ import com.harsh.mymediaplayer.R
 import com.harsh.mymediaplayer.databinding.FragmentFirstBinding
 import com.harsh.mymediaplayer.ui.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FirstFragment: Fragment() {
 
     private lateinit var binding: FragmentFirstBinding
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
+
+    private var newUri: Uri? = null
 
     private val activityResultLauncher =
         registerForActivityResult(
@@ -42,7 +47,7 @@ class FirstFragment: Fragment() {
             if (!isGranted) {
 
                 var shouldShowRequestPermissionRationale: Boolean = false
-                REQUIRED_PERMISSIONS.forEach { p ->
+                permissions.keys.forEach { p ->
                     if (shouldShowRequestPermissionRationale(p)) {
                         shouldShowRequestPermissionRationale = true
                     }
@@ -95,13 +100,28 @@ class FirstFragment: Fragment() {
             }
         }
 
-        val fileUri = Uri.parse("com.android.providers.media.photopicker/media/1000038350")
-        Glide.with(binding.imageIv.context).asBitmap()
-            .load(fileUri)
-            .placeholder(R.drawable.ic_photo_24)
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-            .dontAnimate()
-            .into(binding.imageIv)
+        binding.imageIv.setOnClickListener {
+            newUri?.let { it1 ->
+                navigateToFullScreenImage(it1)
+            }
+        }
+
+        attachPhotoObserver()
+
+    }
+
+    private fun attachPhotoObserver() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            mainActivityViewModel.photoUriFlow.collect { fileUri ->
+                newUri = fileUri
+                Glide.with(binding.imageIv.context).asBitmap()
+                    .load(fileUri)
+                    .placeholder(R.drawable.ic_photo_24)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .dontAnimate()
+                    .into(binding.imageIv)
+            }
+        }
     }
 
     private fun showStoragePermissionRationale() {
@@ -145,6 +165,19 @@ class FirstFragment: Fragment() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "navigateToCameraFragment: ${e.message}")
+        }
+    }
+
+    private fun navigateToFullScreenImage(uri: Uri) {
+        try {
+            if (findNavController().currentDestination?.id != R.id.fullScreenImageFragment) {
+                findNavController().navigate(R.id.fullScreenImageFragment, Bundle().apply {
+                    putString(FullScreenImageFragment.IMAGE_URI, uri.toString())
+                    putBoolean(FullScreenImageFragment.IS_VIEW_ONLY, true)
+                })
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "onImageSaved: ${e.message}")
         }
     }
 

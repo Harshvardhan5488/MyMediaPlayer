@@ -1,5 +1,6 @@
 package com.harsh.mymediaplayer.ui.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.harsh.mymediaplayer.ui.controller.AudioPlaybackController
@@ -41,6 +42,15 @@ class MainActivityViewModel @Inject constructor(
     fun clearCentralAudioFlow() {
         viewModelScope.launch {
             playCentralAudioMutableStateFlow.emit(null)
+        }
+    }
+
+    private val photoUriMutableStatFlow: MutableStateFlow<Uri?> = MutableStateFlow(null)
+    val photoUriFlow: Flow<Uri> = photoUriMutableStatFlow.filterNotNull()
+
+    fun sendPhotoUri(uri: Uri) {
+        viewModelScope.launch {
+            photoUriMutableStatFlow.emit(uri)
         }
     }
 
