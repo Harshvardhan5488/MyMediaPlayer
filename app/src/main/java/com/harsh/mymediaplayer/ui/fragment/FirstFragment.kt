@@ -115,37 +115,37 @@ class FirstFragment: Fragment() {
             mainActivityViewModel.photoUriFlow.collect { fileUri ->
                 newUri = fileUri
                 Glide.with(binding.imageIv.context).asBitmap()
-                    .load(fileUri)
-                    .placeholder(R.drawable.ic_photo_24)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .dontAnimate()
-                    .into(binding.imageIv)
+                        .load(fileUri)
+                        .placeholder(R.drawable.ic_photo_24)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        .dontAnimate()
+                        .into(binding.imageIv)
             }
         }
     }
 
     private fun showStoragePermissionRationale() {
         MaterialAlertDialogBuilder(requireContext(), androidx.transition.R.style.AlertDialog_AppCompat)
-            .setTitle("Alert")
-            .setMessage("Storage permission, without this some of the feature will not work properly. Please allow read storage permission")
-            .setPositiveButton("Ok") { _, _ ->
-                activityResultLauncher.launch(REQUIRED_PERMISSIONS)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+                .setTitle("Alert")
+                .setMessage("Storage permission, without this some of the feature will not work properly. Please allow read storage permission")
+                .setPositiveButton("Ok") { _, _ ->
+                    activityResultLauncher.launch(REQUIRED_PERMISSIONS)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
     }
 
     private fun showSettingDialog() {
         MaterialAlertDialogBuilder(requireContext(), androidx.appcompat.R.style.AlertDialog_AppCompat)
-            .setTitle("Storage Permission")
-            .setMessage("Storage permission is required, without this some of the feature will not work properly. Please allow storage permission from setting")
-            .setPositiveButton("Ok") { _, _ ->
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                intent.data = Uri.parse("package:${requireContext().packageName}")
-                startActivity(intent)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+                .setTitle("Storage Permission")
+                .setMessage("Storage permission is required, without this some of the feature will not work properly. Please allow storage permission from setting")
+                .setPositiveButton("Ok") { _, _ ->
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = Uri.parse("package:${requireContext().packageName}")
+                    startActivity(intent)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {

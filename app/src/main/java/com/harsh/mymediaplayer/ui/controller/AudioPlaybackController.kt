@@ -2,6 +2,7 @@ package com.harsh.mymediaplayer.ui.controller
 
 import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaBrowser
@@ -73,8 +74,10 @@ class AudioPlaybackController @Inject constructor(
                 browser.stop()
             }
             browser.setMediaItem(
-                MediaItem.fromUri(link)
+                //MediaItem.fromUri(link)
+                MediaItem.fromUri(Uri.parse("asset:///ringing_sound.mp3"))
             )
+            browser.repeatMode = Player.REPEAT_MODE_ONE
             browser.prepare()
             browser.play()
         }

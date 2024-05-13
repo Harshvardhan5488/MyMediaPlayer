@@ -16,6 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+<!--    <com.harsh.mymediaplayer.ui.ZoomableImageView-->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/fullscreen_iv"
         android:layout_width="0dp"

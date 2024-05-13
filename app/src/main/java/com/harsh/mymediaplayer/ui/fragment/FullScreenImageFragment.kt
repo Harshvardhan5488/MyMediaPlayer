@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.core.net.toFile
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -25,20 +24,19 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.harsh.mymediaplayer.R
 import com.harsh.mymediaplayer.databinding.FragmentFullScreenImageBinding
 import com.harsh.mymediaplayer.ui.viewmodel.MainActivityViewModel
-import kotlinx.coroutines.delay
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import kotlin.time.Duration.Companion.seconds
 
+@AndroidEntryPoint
 class FullScreenImageFragment: Fragment() {
 
     private lateinit var binding: FragmentFullScreenImageBinding
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
     private val imageUri: String by lazy { arguments?.getString(IMAGE_URI)!! }
-    private val isFromGallery: Boolean by lazy { arguments?.getBoolean(IS_FROM_GALLERY) ?: false }
     private val isViewOnly: Boolean by lazy { arguments?.getBoolean(IS_VIEW_ONLY) ?: false }
 
     override fun onCreateView(
@@ -71,7 +69,6 @@ class FullScreenImageFragment: Fragment() {
         binding.sendBt.setOnClickListener {
             showPleaseWaitDialog()
             viewLifecycleOwner.lifecycleScope.launch {
-                delay(3.seconds)
                 compressPhotoAndSave(Uri.parse(imageUri))?.let { uri ->
                     mainActivityViewModel.sendPhotoUri(uri)
                 }
@@ -85,10 +82,12 @@ class FullScreenImageFragment: Fragment() {
         val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(uri))
         val finalBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height)
 
+        /*
         // Optionally, delete the original captured image
         if (!isFromGallery) {
             requireContext().contentResolver.delete(uri, null, null)
         }
+        */
 
         return saveImageToMediaStore(uri, finalBitmap)
     }
@@ -190,7 +189,6 @@ class FullScreenImageFragment: Fragment() {
     companion object {
         private const val TAG = "FullScreenImageFragment"
         const val IMAGE_URI = "IMAGE_URI"
-        const val IS_FROM_GALLERY = "IS_FROM_GALLERY"
         const val IS_VIEW_ONLY = "IS_VIEW_ONLY"
     }
 }

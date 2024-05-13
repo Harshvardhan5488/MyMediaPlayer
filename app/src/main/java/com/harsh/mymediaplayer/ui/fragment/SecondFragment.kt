@@ -1,17 +1,20 @@
 package com.harsh.mymediaplayer.ui.fragment
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
-import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,15 +26,21 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.FLASH_MODE_AUTO
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.impl.utils.Exif
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.harsh.mymediaplayer.R
+import com.harsh.mymediaplayer.data.repos.computeExifOrientation
+import com.harsh.mymediaplayer.data.repos.decodeExifOrientation
 import com.harsh.mymediaplayer.databinding.FragmentSecondBinding
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -53,7 +62,7 @@ class SecondFragment: Fragment() {
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             Log.d("PhotoPicker", "Selected URI: $uri")
-            openFileWithUri(uri, true)
+            openFileWithUri(uri)
         } else {
             Log.d("PhotoPicker", "No media selected")
         }
@@ -97,8 +106,8 @@ class SecondFragment: Fragment() {
 
             imageCapture = ImageCapture.Builder()
                 .setFlashMode(FLASH_MODE_AUTO)
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .setTargetResolution(Size(720, 1280))
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                //.setTargetResolution(Size(720, 1280))
                 .build()
 
             try {
@@ -172,6 +181,7 @@ class SecondFragment: Fragment() {
             }.setNegativeButton("Cancel", null).show()
     }
 
+    @SuppressLint("RestrictedApi")
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
@@ -185,13 +195,11 @@ class SecondFragment: Fragment() {
             }
         }
 
-        val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(
-                requireContext().contentResolver,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            )
-            .build()
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(
+            requireContext().contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        ).build()
 
         imageCapture.takePicture(
             outputOptions,
@@ -202,20 +210,85 @@ class SecondFragment: Fragment() {
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    output.savedUri?.let { savedUri ->
-                        openFileWithUri(savedUri, false)
-                    }
+                    Log.d(TAG, "onImageSaved: ${output.savedUri}")
+                    val savedUri = output.savedUri ?: return
+
+                    // Read EXIF data for rotation information
+                    val inputStream = requireContext().contentResolver.openInputStream(savedUri)
+                    val exif = Exif.createFromInputStream(inputStream!!)
+                    val rotation = exif.rotation
+
+                    // Handle image based on rotation
+                    handleImageWithRotation(savedUri, rotation)
+                    //openFileWithUri(savedUri, false)
                 }
             }
         )
     }
 
-    private fun openFileWithUri(uri: Uri, isFromGallery: Boolean) {
+    private fun handleImageWithRotation(uri: Uri, rotation: Int) {
+        Log.d(TAG, "handleImageWithRotation: $uri $rotation")
+        when (val exifOrientation = computeExifOrientation(rotation, false)) {
+            // No rotation needed
+            0, ExifInterface.ORIENTATION_NORMAL -> openFileWithUri(uri)
+            // Handle other orientations as needed
+            else -> {
+                Log.w(TAG, "Unsupported EXIF orientation: $rotation")
+                val inputStream = requireContext().contentResolver.openInputStream(uri)
+                if (inputStream != null) {
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    val matrix = decodeExifOrientation(exifOrientation)
+                    val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    // Recycle the original bitmap
+                    bitmap.recycle()
+                    openFileWithUri(getUriFromBitmap(uri, rotatedBitmap)) // Pass the rotated bitmap's Uri
+                } else {
+                    Log.w(TAG, "Failed to open input stream for image: $uri")
+                }
+            }
+        }
+    }
+
+    private fun getUriFromBitmap(uri: Uri, bitmap: Bitmap): Uri {
+        Log.d(TAG, "getUriFromBitmap: ${bitmap.byteCount}")
+        val directory = File(requireContext().filesDir, "Camera_Image")
+        if (!directory.exists()) {
+            directory.mkdirs()
+        }
+        val file = File(directory, getFileName(uri))
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        return Uri.fromFile(file)
+    }
+
+    private fun getFileName(uri: Uri): String {
+        var result: String? = null
+        if (uri.scheme.equals("content")) {
+            val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+            cursor?.let {
+                if (it.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+                }
+                cursor.close()
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result?.lastIndexOf('/')
+            if (cut != null && cut != -1) {
+                result = result?.substring(cut + 1)
+            }
+        }
+        return result ?: "temp_file"
+    }
+
+    private fun openFileWithUri(uri: Uri) {
         try {
             if (findNavController().currentDestination?.id != R.id.fullScreenImageFragment) {
                 findNavController().navigate(R.id.fullScreenImageFragment, Bundle().apply {
                     putString(FullScreenImageFragment.IMAGE_URI, uri.toString())
-                    putBoolean(FullScreenImageFragment.IS_FROM_GALLERY, isFromGallery)
                 })
             }
         } catch (e: Exception) {
