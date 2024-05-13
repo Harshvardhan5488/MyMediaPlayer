@@ -107,7 +107,7 @@ class FullScreenImageFragment: Fragment() {
         if (newImageUri != null) {
             try {
                 val outputStream = resolver.openOutputStream(newImageUri)
-                getResizedBitmap(bitmap, 1280).compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+                getResizedBitmap(bitmap, 1280).compress(Bitmap.CompressFormat.JPEG, 50, outputStream!!)
                 //bitmap
                 outputStream?.close()
                 return newImageUri

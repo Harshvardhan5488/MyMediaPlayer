@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,6 +26,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.harsh.mymediaplayer.R
 import com.harsh.mymediaplayer.databinding.FragmentFirstBinding
 import com.harsh.mymediaplayer.ui.viewmodel.MainActivityViewModel
+import com.harsh.taptargetview.TapTarget
+import com.harsh.taptargetview.TapTargetSequence
+import com.harsh.taptargetview.TapTargetView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,8 +79,36 @@ class FirstFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        TapTargetView.showFor(
+            requireActivity(),
+
+            TapTarget.forView(binding.startButton, "This is a imageView", "Click here to Start Tutorial")
+                    .outerCircleColor(R.color.purple_700)      // Specify a color for the outer circle
+                    .outerCircleAlpha(0.7f)            // Specify the alpha amount for the outer circle
+                    .targetCircleColor(R.color.purple_500)   // Specify a color for the target circle
+                    .titleTextSize(20)                  // Specify the size (in sp) of the title text
+                    .titleTextColor(R.color.white)      // Specify the color of the title text
+                    .descriptionTextSize(10)            // Specify the size (in sp) of the description text
+                    .textTypeface(Typeface.SANS_SERIF)  // Specify a typeface for the text
+                    .dimColor(R.color.black)            // If set, will dim behind the view with 30% opacity of the given color
+                    .drawShadow(true)                   // Whether to draw a drop shadow or not
+                    .cancelable(false)                  // Whether tapping outside the outer circle dismisses the view
+                    .tintTarget(false)                   // Whether to tint the target view's color
+                    .transparentTarget(false)           // Specify whether the target is transparent (displays the content underneath)
+                    //.icon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_photo_24))                     // Specify a custom drawable to draw as the target
+                    .targetRadius(60),                  // Specify the target radius (in dp)
+
+            object: TapTargetView.Listener() {
+                override fun onTargetClick(view: TapTargetView?) {
+                    super.onTargetClick(view)
+                    Toast.makeText(requireContext(), "Clicked", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
         binding.startButton.setOnClickListener {
-            mainActivityViewModel.playCentralAudio(LINK)
+            //mainActivityViewModel.playCentralAudio(LINK)
+            startTutorial()
         }
 
         binding.playPauseIv.setOnClickListener {
@@ -110,6 +142,34 @@ class FirstFragment: Fragment() {
 
     }
 
+    private fun startTutorial() {
+        TapTargetSequence(requireActivity())
+                .targets(
+                    TapTarget.forView(binding.startButton, "Start button", "Click here to go")
+                            .targetRadius(binding.startButton.width/4),
+                    TapTarget.forView(binding.playPauseIv, "Play / Pause Button", "Click here to go")
+                            .targetRadius(binding.playPauseIv.width/4),
+                    TapTarget.forView(binding.nextFragmentBt, "Next Fragment Button", "Click here to End")
+                            .targetRadius(binding.nextFragmentBt.width/4)
+                )
+
+                .listener(object: TapTargetSequence.Listener {
+                    override fun onSequenceFinish() {
+                        Toast.makeText(requireContext(), "Tutorial Finished", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onSequenceStep(lastTarget: TapTarget?, targetClicked: Boolean) {
+
+                    }
+
+                    override fun onSequenceCanceled(lastTarget: TapTarget?) {
+
+                    }
+
+                })
+                .start()
+    }
+
     private fun attachPhotoObserver() {
         lifecycleScope.launch(Dispatchers.Main) {
             mainActivityViewModel.photoUriFlow.collect { fileUri ->
@@ -125,7 +185,7 @@ class FirstFragment: Fragment() {
     }
 
     private fun showStoragePermissionRationale() {
-        MaterialAlertDialogBuilder(requireContext(), androidx.transition.R.style.AlertDialog_AppCompat)
+        MaterialAlertDialogBuilder(requireContext(), androidx.appcompat.R.style.AlertDialog_AppCompat)
                 .setTitle("Alert")
                 .setMessage("Storage permission, without this some of the feature will not work properly. Please allow read storage permission")
                 .setPositiveButton("Ok") { _, _ ->
